@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { App, PluginSettingTab } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import type ClaudeCopilotPlugin from "../../main";
@@ -7,18 +7,13 @@ import {
 	openPromptFile,
 	restoreDefaultPrompt,
 } from "../services/promptTemplate";
+import { AnthropicClient, ModelInfo } from "../services/anthropicClient";
 
-const CLAUDE_MODELS = [
+const FALLBACK_MODELS = [
 	"claude-3-5-haiku-latest",
-	"claude-3-5-haiku-20241022",
 	"claude-3-7-sonnet-latest",
-	"claude-3-7-sonnet-20250219",
-	"claude-sonnet-4-0",
-	"claude-sonnet-4-20250514",
-	"claude-opus-4-0",
-	"claude-opus-4-20250514",
-	"claude-opus-4-1",
-	"claude-opus-4-1-20250805",
+	"claude-sonnet-4-5-20250929",
+	"claude-opus-4-5-20251101",
 ];
 
 interface SettingsProps {
@@ -39,6 +34,32 @@ const SettingsComponent: React.FC<SettingsProps> = ({
 		text: string;
 		type: "success" | "error";
 	} | null>(null);
+	const [models, setModels] = useState<ModelInfo[]>([]);
+	const [modelsLoading, setModelsLoading] = useState(false);
+
+	const fetchModels = useCallback(async (key: string) => {
+		if (!key) {
+			setModels([]);
+			return;
+		}
+		setModelsLoading(true);
+		try {
+			const fetchedModels = await AnthropicClient.fetchModels(key);
+			setModels(fetchedModels);
+		} catch (error) {
+			console.error("Failed to fetch models:", error);
+			setModels([]);
+		} finally {
+			setModelsLoading(false);
+		}
+	}, []);
+
+	// Fetch models on mount if API key exists
+	useEffect(() => {
+		if (apiKey) {
+			fetchModels(apiKey);
+		}
+	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	// Auto-clear status messages after 3 seconds
 	useEffect(() => {
@@ -131,7 +152,9 @@ const SettingsComponent: React.FC<SettingsProps> = ({
 				<div className="setting-item-info">
 					<div className="setting-item-name">Claude Model</div>
 					<div className="setting-item-description">
-						Select which Claude model to use
+						{models.length > 0
+							? `Select which Claude model to use (${models.length} available)`
+							: "Select which Claude model to use (using fallback list)"}
 					</div>
 				</div>
 				<div className="setting-item-control">
@@ -139,13 +162,25 @@ const SettingsComponent: React.FC<SettingsProps> = ({
 						className="dropdown"
 						value={model}
 						onChange={(e) => handleModelChange(e.target.value)}
+						disabled={modelsLoading}
 					>
-						{CLAUDE_MODELS.map((modelOption) => (
+						{(models.length > 0
+							? models.map((m) => m.id)
+							: FALLBACK_MODELS
+						).map((modelOption) => (
 							<option key={modelOption} value={modelOption}>
 								{modelOption}
 							</option>
 						))}
 					</select>
+					<button
+						onClick={() => fetchModels(apiKey)}
+						disabled={modelsLoading || !apiKey}
+						style={{ marginLeft: "8px" }}
+						title="Refresh model list from API"
+					>
+						{modelsLoading ? "..." : "↻"}
+					</button>
 				</div>
 			</div>
 

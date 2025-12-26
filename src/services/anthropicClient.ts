@@ -6,10 +6,17 @@ import {
 	AnthropicErrorResponse,
 } from "../types";
 
+export interface ModelInfo {
+	id: string;
+	display_name: string;
+	created_at: string;
+}
+
 export class AnthropicClient {
 	private config: AnthropicClientConfig;
 	private readonly baseUrl = "https://api.anthropic.com/v1/messages";
 	private readonly apiVersion = "2023-06-01";
+	private static readonly modelsUrl = "https://api.anthropic.com/v1/models";
 
 	constructor(config: AnthropicClientConfig) {
 		this.config = config;
@@ -124,5 +131,52 @@ export class AnthropicClient {
 	 */
 	updateConfig(config: Partial<AnthropicClientConfig>): void {
 		this.config = { ...this.config, ...config };
+	}
+
+	/**
+	 * Fetch available models from the Anthropic API
+	 * @param apiKey The API key to authenticate with
+	 * @returns Array of model info objects sorted by creation date (newest first)
+	 */
+	static async fetchModels(apiKey: string): Promise<ModelInfo[]> {
+		const allModels: ModelInfo[] = [];
+		let afterId: string | undefined;
+
+		do {
+			const url = afterId
+				? `${AnthropicClient.modelsUrl}?limit=100&after_id=${afterId}`
+				: `${AnthropicClient.modelsUrl}?limit=100`;
+
+			const response = await requestUrl({
+				url,
+				method: "GET",
+				headers: {
+					"x-api-key": apiKey,
+					"anthropic-version": "2023-06-01",
+				},
+			});
+
+			if (response.status !== 200) {
+				throw new Error(`Failed to fetch models: ${response.status}`);
+			}
+
+			const data = JSON.parse(response.text);
+			for (const model of data.data) {
+				allModels.push({
+					id: model.id,
+					display_name: model.display_name,
+					created_at: model.created_at,
+				});
+			}
+
+			afterId = data.has_more ? data.last_id : undefined;
+		} while (afterId);
+
+		// Sort by created_at descending (newest first)
+		return allModels.sort(
+			(a, b) =>
+				new Date(b.created_at).getTime() -
+				new Date(a.created_at).getTime(),
+		);
 	}
 }
