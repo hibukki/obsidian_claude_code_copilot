@@ -16,6 +16,7 @@ import { ClaudeCopilotSettingTab } from "./src/components/SettingsTab";
 import { ClaudeCopilotSettings } from "./src/types";
 import { Settings, CopilotReactAPI } from "./src/types/copilotState";
 import { DEFAULT_ALLOWED_TOOLS } from "./src/consts";
+import { createCursorTracker } from "./src/extensions/cursorTracker";
 
 const DEFAULT_SETTINGS: ClaudeCopilotSettings = {
 	debounceDelay: 2000,
@@ -143,6 +144,17 @@ export default class ClaudeCopilotPlugin extends Plugin {
 
 			this.registerEvent(
 				this.app.workspace.on("active-leaf-change", () => {
+					const view =
+						this.app.workspace.getActiveViewOfType(MarkdownView);
+					if (view) {
+						this.handleDocumentChange(view.editor, view);
+					}
+				}),
+			);
+
+			// Track cursor movement to delay debounce
+			this.registerEditorExtension(
+				createCursorTracker(() => {
 					const view =
 						this.app.workspace.getActiveViewOfType(MarkdownView);
 					if (view) {
