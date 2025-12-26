@@ -8,6 +8,8 @@ This CSS file is automatically loaded by Obsidian when the plugin is enabled.
 	padding: 16px;
 	height: 100%;
 	overflow-y: auto;
+	display: flex;
+	flex-direction: column;
 }
 
 /* Feedback section */
@@ -27,9 +29,9 @@ This CSS file is automatically loaded by Obsidian when the plugin is enabled.
 
 /* Debug section */
 .debug-section {
-	margin-top: 20px;
+	margin-top: 8px;
 	border-top: 1px solid var(--background-modifier-border);
-	padding-top: 12px;
+	padding-top: 8px;
 }
 
 .debug-header {
@@ -205,4 +207,21 @@ This CSS file is automatically loaded by Obsidian when the plugin is enabled.
 .setting-status-error {
 	background-color: var(--background-modifier-error);
 	color: var(--text-error);
+}
+
+/* Footer with secondary actions - sticks to bottom */
+.copilot-footer {
+	margin-top: auto;
+	padding-top: 12px;
+	font-size: 12px;
+}
+
+.copilot-clear-link {
+	color: var(--text-muted);
+	cursor: pointer;
+	text-decoration: none;
+}
+
+.copilot-clear-link:hover {
+	color: var(--text-normal);
 }

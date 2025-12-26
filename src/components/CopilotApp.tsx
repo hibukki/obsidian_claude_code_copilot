@@ -133,6 +133,13 @@ ${contextLines}
 		}
 	};
 
+	// Handle clearing the session
+	const handleClear = () => {
+		claudeClientRef.current?.clearSession();
+		setQueryState({ status: "idle" });
+		setLastSuccessfulFeedback(null);
+	};
+
 	// Expose API to Obsidian
 	useEffect(() => {
 		const api: CopilotReactAPI = {
@@ -164,6 +171,7 @@ ${contextLines}
 				queryState={queryState}
 				lastSuccessfulFeedback={lastSuccessfulFeedback}
 				onRetry={handleRetry}
+				onClear={handleClear}
 			/>
 		</SettingsProvider>
 	);

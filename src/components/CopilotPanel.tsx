@@ -7,12 +7,14 @@ interface CopilotPanelProps {
 	queryState: QueryState;
 	lastSuccessfulFeedback: string | null;
 	onRetry?: () => void;
+	onClear?: () => void;
 }
 
 export const CopilotPanel: React.FC<CopilotPanelProps> = ({
 	queryState,
 	lastSuccessfulFeedback,
 	onRetry,
+	onClear,
 }) => {
 	const [isDebugOpen, toggleDebugOpen] = usePersistentPanelState(
 		"debug-section",
@@ -25,20 +27,28 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
 
 	return (
 		<div className="claude-copilot-container">
-			<h4>Claude Copilot</h4>
-
 			<FeedbackSection
 				queryState={queryState}
 				lastSuccessfulFeedback={lastSuccessfulFeedback}
 				onRetry={onRetry}
 			/>
 
-			<DebugSection
-				isOpen={isDebugOpen}
-				onToggle={toggleDebugOpen}
-				documentPreview={documentPreview}
-				queryState={queryState}
-			/>
+			<div className="copilot-footer">
+				<a
+					className="copilot-clear-link"
+					onClick={onClear}
+					title="Clear session and start fresh"
+				>
+					/clear
+				</a>
+
+				<DebugSection
+					isOpen={isDebugOpen}
+					onToggle={toggleDebugOpen}
+					documentPreview={documentPreview}
+					queryState={queryState}
+				/>
+			</div>
 		</div>
 	);
 };

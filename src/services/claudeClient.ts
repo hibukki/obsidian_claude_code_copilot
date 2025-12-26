@@ -25,6 +25,11 @@ export class ClaudeClient {
 		this.allowedTools = allowedTools;
 	}
 
+	clearSession() {
+		const sessionId = getSessionId(this.vaultPath);
+		this.activeSessions.delete(sessionId);
+	}
+
 	isNewSession(): boolean {
 		return !this.activeSessions.has(getSessionId(this.vaultPath));
 	}
