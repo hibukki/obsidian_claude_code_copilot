@@ -33,6 +33,7 @@ export const CopilotApp: React.FC<CopilotAppProps> = ({
 	>(null);
 
 	const claudeClientRef = useRef<ClaudeClient | null>(null);
+	const clearTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
 	// Initialize ClaudeClient
 	useEffect(() => {
@@ -140,7 +141,10 @@ ${contextLines}
 		setLastSuccessfulFeedback(null);
 
 		// Reset to idle after brief feedback
-		setTimeout(() => {
+		if (clearTimeoutRef.current) {
+			clearTimeout(clearTimeoutRef.current);
+		}
+		clearTimeoutRef.current = setTimeout(() => {
 			setQueryState({ status: "idle" });
 		}, 1500);
 	};
@@ -167,6 +171,9 @@ ${contextLines}
 	useEffect(() => {
 		return () => {
 			debouncedQuery.cancel();
+			if (clearTimeoutRef.current) {
+				clearTimeout(clearTimeoutRef.current);
+			}
 		};
 	}, [debouncedQuery]);
 
