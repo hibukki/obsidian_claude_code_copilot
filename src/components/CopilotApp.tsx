@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { debounce, App } from "obsidian";
 import { Settings, QueryState, CopilotReactAPI } from "../types/copilotState";
-import { SettingsProvider } from "../contexts/SettingsContext";
 import { CopilotPanel } from "./CopilotPanel";
 import { ClaudeClient } from "../services/claudeClient";
 import {
@@ -158,14 +157,12 @@ ${contextLines}
 			onEditorContentChanged: debouncedQuery,
 			cancelPendingQueries: () => {
 				debouncedQuery.cancel();
-				if (queryState.status === "querying") {
-					setQueryState({ status: "idle" });
-				}
+				setQueryState({ status: "idle" });
 			},
 		};
 
 		onApiReady(api);
-	}, [debouncedQuery, queryState.status]);
+	}, [debouncedQuery]);
 
 	// Cleanup on unmount
 	useEffect(() => {
@@ -178,13 +175,11 @@ ${contextLines}
 	}, [debouncedQuery]);
 
 	return (
-		<SettingsProvider settings={settings}>
-			<CopilotPanel
-				queryState={queryState}
-				lastSuccessfulFeedback={lastSuccessfulFeedback}
-				onRetry={handleRetry}
-				onClear={handleClear}
-			/>
-		</SettingsProvider>
+		<CopilotPanel
+			queryState={queryState}
+			lastSuccessfulFeedback={lastSuccessfulFeedback}
+			onRetry={handleRetry}
+			onClear={handleClear}
+		/>
 	);
 };

@@ -21,10 +21,6 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
 		false,
 	);
 
-	// Compute document preview from current editor state (when available)
-	// For now, we'll show a placeholder since we need editor content
-	const documentPreview = "Document preview will be shown here...";
-
 	return (
 		<div className="claude-copilot-container">
 			<FeedbackSection
@@ -45,7 +41,6 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
 				<DebugSection
 					isOpen={isDebugOpen}
 					onToggle={toggleDebugOpen}
-					documentPreview={documentPreview}
 					queryState={queryState}
 				/>
 			</div>
@@ -110,14 +105,12 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 interface DebugSectionProps {
 	isOpen: boolean;
 	onToggle: () => void;
-	documentPreview: string;
 	queryState: QueryState;
 }
 
 const DebugSection: React.FC<DebugSectionProps> = ({
 	isOpen,
 	onToggle,
-	documentPreview,
 	queryState,
 }) => {
 	return (
@@ -131,22 +124,8 @@ const DebugSection: React.FC<DebugSectionProps> = ({
 				className="debug-details"
 				style={{ display: isOpen ? "block" : "none" }}
 			>
-				<DocumentPreview content={documentPreview} />
 				<ErrorLog queryState={queryState} />
 			</div>
-		</div>
-	);
-};
-
-interface DocumentPreviewProps {
-	content: string;
-}
-
-const DocumentPreview: React.FC<DocumentPreviewProps> = ({ content }) => {
-	return (
-		<div className="document-preview">
-			<h5>Document Preview:</h5>
-			<pre className="preview-content">{content}</pre>
 		</div>
 	);
 };
