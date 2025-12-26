@@ -196,16 +196,15 @@ This CSS file is automatically loaded by Obsidian when the plugin is enabled.
 	margin-top: 8px;
 	padding: 6px 12px;
 	border-radius: 4px;
-	font-size: 14px;
+	font-size: 13px;
 }
 
 .setting-status-success {
-	background-color: var(--background-modifier-success);
-	color: var(--text-success);
+	color: var(--text-muted);
+	font-style: italic;
 }
 
 .setting-status-error {
-	background-color: var(--background-modifier-error);
 	color: var(--text-error);
 }
 
