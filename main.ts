@@ -15,11 +15,8 @@ import { CopilotApp } from "./src/components/CopilotApp";
 import { ClaudeCopilotSettingTab } from "./src/components/SettingsTab";
 import { ClaudeCopilotSettings } from "./src/types";
 import { Settings, CopilotReactAPI } from "./src/types/copilotState";
-import { insertCursorMarker } from "./src/utils/cursor";
 
 const DEFAULT_SETTINGS: ClaudeCopilotSettings = {
-	apiKey: "",
-	model: "claude-3-5-haiku-latest",
 	debounceDelay: 2000,
 };
 
@@ -53,16 +50,19 @@ class ClaudeCopilotView extends ItemView {
 
 		this.root = createRoot(container);
 
-		// Convert ClaudeCopilotSettings to our new Settings format
 		const initialSettings: Settings = {
-			apiKey: this.plugin.settings.apiKey,
-			model: this.plugin.settings.model,
 			debounceDelayMs: this.plugin.settings.debounceDelay,
 		};
+
+		// Get vault path for Claude CLI working directory
+		const vaultPath = (
+			this.plugin.app.vault.adapter as { basePath?: string }
+		).basePath;
 
 		this.root.render(
 			React.createElement(CopilotApp, {
 				initialSettings,
+				vaultPath: vaultPath || "",
 				onApiReady: (api: CopilotReactAPI) => {
 					this.reactAPI = api;
 					this.plugin.onCopilotReady(api);
@@ -73,8 +73,16 @@ class ClaudeCopilotView extends ItemView {
 	}
 
 	// Simple proxy methods that delegate to React
-	onEditorContentChanged(content: string, cursorPosition: number) {
-		this.reactAPI?.onEditorContentChanged(content, cursorPosition);
+	onEditorContentChanged(
+		content: string,
+		cursorPosition: number,
+		filePath: string,
+	) {
+		this.reactAPI?.onEditorContentChanged(
+			content,
+			cursorPosition,
+			filePath,
+		);
 	}
 
 	updateSettings(settings: Partial<Settings>) {
@@ -119,11 +127,7 @@ export default class ClaudeCopilotPlugin extends Plugin {
 				},
 			});
 
-			this.addSettingTab(
-				new ClaudeCopilotSettingTab(this.app, this, (model: string) => {
-					this.onModelChanged(model);
-				}),
-			);
+			this.addSettingTab(new ClaudeCopilotSettingTab(this.app, this));
 
 			this.registerEvent(
 				this.app.workspace.on(
@@ -184,18 +188,14 @@ export default class ClaudeCopilotPlugin extends Plugin {
 		this.reactAPI = api;
 	}
 
-	handleDocumentChange(editor: Editor, _view: MarkdownView) {
+	handleDocumentChange(editor: Editor, view: MarkdownView) {
 		const content = editor.getValue();
 		const cursor = editor.getCursor();
 		const cursorPos = editor.posToOffset(cursor);
+		const filePath = view.file?.path || "untitled";
 
 		// Delegate to React
-		this.copilotView?.onEditorContentChanged(content, cursorPos);
-	}
-
-	onModelChanged(model: string) {
-		console.log("Model changed to:", model);
-		this.reactAPI?.updateSettings({ model });
+		this.copilotView?.onEditorContentChanged(content, cursorPos, filePath);
 	}
 
 	onunload() {
@@ -215,8 +215,6 @@ export default class ClaudeCopilotPlugin extends Plugin {
 
 		// Sync settings to React
 		this.reactAPI?.updateSettings({
-			apiKey: this.settings.apiKey,
-			model: this.settings.model,
 			debounceDelayMs: this.settings.debounceDelay,
 		});
 	}

@@ -1,8 +1,6 @@
 // Core types for the refactored React state management
 
 export interface Settings {
-	apiKey: string;
-	model: string;
 	debounceDelayMs: number;
 }
 
@@ -22,14 +20,15 @@ export interface CopilotAppState {
 // API contract between Obsidian and React
 export interface CopilotReactAPI {
 	updateSettings: (settings: Partial<Settings>) => void;
-	onEditorContentChanged: (content: string, cursorPosition: number) => void;
+	onEditorContentChanged: (
+		content: string,
+		cursorPosition: number,
+		filePath: string,
+	) => void;
 	cancelPendingQueries: () => void;
 }
 
-// Derived value functions (computed, not stored)
-export const hasValidApiKey = (settings: Settings): boolean =>
-	settings.apiKey.length > 0;
-
+// CLI-specific error handling
 export const canRetryError = (error: string): boolean =>
-	!error.toLowerCase().includes("invalid api key") &&
-	!error.toLowerCase().includes("authentication");
+	!error.toLowerCase().includes("enoent") &&
+	!error.toLowerCase().includes("command not found");

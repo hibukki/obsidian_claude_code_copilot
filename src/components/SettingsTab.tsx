@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import { App, PluginSettingTab } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import type ClaudeCopilotPlugin from "../../main";
@@ -7,26 +7,12 @@ import {
 	openPromptFile,
 	restoreDefaultPrompt,
 } from "../services/promptTemplate";
-import { AnthropicClient, ModelInfo } from "../services/anthropicClient";
-
-const FALLBACK_MODELS = [
-	"claude-3-5-haiku-latest",
-	"claude-3-7-sonnet-latest",
-	"claude-sonnet-4-5-20250929",
-	"claude-opus-4-5-20251101",
-];
 
 interface SettingsProps {
 	plugin: ClaudeCopilotPlugin;
-	onModelChanged?: (model: string) => void;
 }
 
-const SettingsComponent: React.FC<SettingsProps> = ({
-	plugin,
-	onModelChanged,
-}) => {
-	const [apiKey, setApiKey] = useState(plugin.settings.apiKey);
-	const [model, setModel] = useState(plugin.settings.model);
+const SettingsComponent: React.FC<SettingsProps> = ({ plugin }) => {
 	const [debounceDelay, setDebounceDelay] = useState(
 		plugin.settings.debounceDelay.toString(),
 	);
@@ -34,32 +20,6 @@ const SettingsComponent: React.FC<SettingsProps> = ({
 		text: string;
 		type: "success" | "error";
 	} | null>(null);
-	const [models, setModels] = useState<ModelInfo[]>([]);
-	const [modelsLoading, setModelsLoading] = useState(false);
-
-	const fetchModels = useCallback(async (key: string) => {
-		if (!key) {
-			setModels([]);
-			return;
-		}
-		setModelsLoading(true);
-		try {
-			const fetchedModels = await AnthropicClient.fetchModels(key);
-			setModels(fetchedModels);
-		} catch (error) {
-			console.error("Failed to fetch models:", error);
-			setModels([]);
-		} finally {
-			setModelsLoading(false);
-		}
-	}, []);
-
-	// Fetch models on mount if API key exists
-	useEffect(() => {
-		if (apiKey) {
-			fetchModels(apiKey);
-		}
-	}, []); // eslint-disable-line react-hooks/exhaustive-deps
 
 	// Auto-clear status messages after 3 seconds
 	useEffect(() => {
@@ -70,19 +30,6 @@ const SettingsComponent: React.FC<SettingsProps> = ({
 			return () => clearTimeout(timer);
 		}
 	}, [statusMessage]);
-
-	const handleApiKeyChange = async (value: string) => {
-		setApiKey(value);
-		plugin.settings.apiKey = value;
-		await plugin.saveSettings();
-	};
-
-	const handleModelChange = async (value: string) => {
-		setModel(value);
-		plugin.settings.model = value;
-		await plugin.saveSettings();
-		onModelChanged?.(value);
-	};
 
 	const handleDebounceDelayChange = async (value: string) => {
 		setDebounceDelay(value);
@@ -131,56 +78,12 @@ const SettingsComponent: React.FC<SettingsProps> = ({
 
 			<div className="setting-item">
 				<div className="setting-item-info">
-					<div className="setting-item-name">Claude API Key</div>
+					<div className="setting-item-name">Claude CLI Required</div>
 					<div className="setting-item-description">
-						Enter your Claude API key. Get one from
-						console.anthropic.com
+						This plugin uses the Claude Code CLI. Make sure 'claude'
+						is installed and available in your PATH. Get it from
+						claude.ai/code
 					</div>
-				</div>
-				<div className="setting-item-control">
-					<input
-						type="password"
-						placeholder="sk-ant-..."
-						value={apiKey}
-						onChange={(e) => handleApiKeyChange(e.target.value)}
-						spellCheck={false}
-					/>
-				</div>
-			</div>
-
-			<div className="setting-item">
-				<div className="setting-item-info">
-					<div className="setting-item-name">Claude Model</div>
-					<div className="setting-item-description">
-						{models.length > 0
-							? `Select which Claude model to use (${models.length} available)`
-							: "Select which Claude model to use (using fallback list)"}
-					</div>
-				</div>
-				<div className="setting-item-control">
-					<select
-						className="dropdown"
-						value={model}
-						onChange={(e) => handleModelChange(e.target.value)}
-						disabled={modelsLoading}
-					>
-						{(models.length > 0
-							? models.map((m) => m.id)
-							: FALLBACK_MODELS
-						).map((modelOption) => (
-							<option key={modelOption} value={modelOption}>
-								{modelOption}
-							</option>
-						))}
-					</select>
-					<button
-						onClick={() => fetchModels(apiKey)}
-						disabled={modelsLoading || !apiKey}
-						style={{ marginLeft: "8px" }}
-						title="Refresh model list from API"
-					>
-						{modelsLoading ? "..." : "↻"}
-					</button>
 				</div>
 			</div>
 
@@ -250,16 +153,10 @@ const SettingsComponent: React.FC<SettingsProps> = ({
 export class ClaudeCopilotSettingTab extends PluginSettingTab {
 	plugin: ClaudeCopilotPlugin;
 	root: Root | null = null;
-	onModelChanged?: (model: string) => void;
 
-	constructor(
-		app: App,
-		plugin: ClaudeCopilotPlugin,
-		onModelChanged?: (model: string) => void,
-	) {
+	constructor(app: App, plugin: ClaudeCopilotPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
-		this.onModelChanged = onModelChanged;
 	}
 
 	display(): void {
@@ -270,7 +167,6 @@ export class ClaudeCopilotSettingTab extends PluginSettingTab {
 		this.root.render(
 			React.createElement(SettingsComponent, {
 				plugin: this.plugin,
-				onModelChanged: this.onModelChanged,
 			}),
 		);
 	}

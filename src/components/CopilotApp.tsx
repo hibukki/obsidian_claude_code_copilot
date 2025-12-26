@@ -1,25 +1,26 @@
 import React, { useState, useEffect, useMemo, useRef } from "react";
 import { debounce, App } from "obsidian";
-import {
-	Settings,
-	QueryState,
-	CopilotReactAPI,
-	hasValidApiKey,
-} from "../types/copilotState";
+import { Settings, QueryState, CopilotReactAPI } from "../types/copilotState";
 import { SettingsProvider } from "../contexts/SettingsContext";
 import { CopilotPanel } from "./CopilotPanel";
-import { AnthropicClient } from "../services/anthropicClient";
-import { insertCursorMarker } from "../utils/cursor";
+import { ClaudeClient } from "../services/claudeClient";
+import {
+	insertCursorMarker,
+	getCursorLineNumber,
+	getContextLines,
+} from "../utils/cursor";
 import { getPromptTemplate } from "../services/promptTemplate";
 
 interface CopilotAppProps {
 	initialSettings: Settings;
+	vaultPath: string;
 	onApiReady: (api: CopilotReactAPI) => void;
 	app: App;
 }
 
 export const CopilotApp: React.FC<CopilotAppProps> = ({
 	initialSettings,
+	vaultPath,
 	onApiReady,
 	app,
 }) => {
@@ -31,38 +32,26 @@ export const CopilotApp: React.FC<CopilotAppProps> = ({
 		string | null
 	>(null);
 
-	const anthropicClientRef = useRef<AnthropicClient | null>(null);
+	const claudeClientRef = useRef<ClaudeClient | null>(null);
 
-	// Create/update AnthropicClient when settings change
+	// Initialize ClaudeClient
 	useEffect(() => {
-		if (hasValidApiKey(settings)) {
-			anthropicClientRef.current = new AnthropicClient({
-				apiKey: settings.apiKey,
-				model: settings.model,
-			});
-		} else {
-			anthropicClientRef.current = null;
-		}
-	}, [settings.apiKey, settings.model]);
+		claudeClientRef.current = new ClaudeClient(vaultPath);
+	}, [vaultPath]);
 
 	// Debounced query function - recreated when settings change
 	const debouncedQuery = useMemo(
 		() =>
 			debounce(
-				async (content: string, cursorPosition: number) => {
-					if (!hasValidApiKey(settings)) {
+				async (
+					content: string,
+					cursorPosition: number,
+					filePath: string,
+				) => {
+					if (!claudeClientRef.current) {
 						setQueryState({
 							status: "error",
-							error: "No API key configured",
-							occurredAt: new Date(),
-						});
-						return;
-					}
-
-					if (!anthropicClientRef.current) {
-						setQueryState({
-							status: "error",
-							error: "Anthropic client not initialized",
+							error: "Claude client not initialized",
 							occurredAt: new Date(),
 						});
 						return;
@@ -71,20 +60,44 @@ export const CopilotApp: React.FC<CopilotAppProps> = ({
 					setQueryState({ status: "querying" });
 
 					try {
-						const documentWithCursor = insertCursorMarker(
-							content,
-							cursorPosition,
-						);
-						const promptTemplate = await getPromptTemplate(app);
-						const prompt = promptTemplate.replace(
-							"{{doc}}",
-							documentWithCursor,
-						);
+						const isNewSession =
+							claudeClientRef.current.isNewSession();
+						let prompt: string;
+
+						if (isNewSession) {
+							// FIRST PROMPT: Full template + entire document with cursor marker
+							const documentWithCursor = insertCursorMarker(
+								content,
+								cursorPosition,
+							);
+							const promptTemplate = await getPromptTemplate(app);
+							prompt = promptTemplate.replace(
+								"{{doc}}",
+								documentWithCursor,
+							);
+						} else {
+							// FOLLOW-UP PROMPT: Minimal context
+							const lines = content.split("\n");
+							const cursorLine = getCursorLineNumber(
+								content,
+								cursorPosition,
+							);
+							const contextLines = getContextLines(
+								lines,
+								cursorLine,
+								2,
+							);
+
+							prompt = `File: ${filePath}
+Cursor at line: ${cursorLine + 1}
+Context:
+${contextLines}
+
+(Use Read tool if you need more context)`;
+						}
 
 						const feedback =
-							await anthropicClientRef.current.queryForFeedback(
-								prompt,
-							);
+							await claudeClientRef.current.getFeedback(prompt);
 						setQueryState({ status: "success", feedback });
 						setLastSuccessfulFeedback(feedback);
 					} catch (error) {
@@ -102,7 +115,7 @@ export const CopilotApp: React.FC<CopilotAppProps> = ({
 				settings.debounceDelayMs,
 				true, // Only use the last call, keep waiting until the user finishes typing
 			),
-		[settings.debounceDelayMs, settings.apiKey, settings.model, app],
+		[settings.debounceDelayMs, app, vaultPath],
 	);
 
 	// Handle retry for failed queries
