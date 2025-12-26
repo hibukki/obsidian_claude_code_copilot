@@ -18,6 +18,7 @@ import { Settings, CopilotReactAPI } from "./src/types/copilotState";
 
 const DEFAULT_SETTINGS: ClaudeCopilotSettings = {
 	debounceDelay: 2000,
+	allowedTools: "Read,Grep,Glob,LS",
 };
 
 const VIEW_TYPE_CLAUDE_COPILOT = "claude-copilot-view";
@@ -52,6 +53,7 @@ class ClaudeCopilotView extends ItemView {
 
 		const initialSettings: Settings = {
 			debounceDelayMs: this.plugin.settings.debounceDelay,
+			allowedTools: this.plugin.settings.allowedTools,
 		};
 
 		// Get vault path for Claude CLI working directory
@@ -216,6 +218,7 @@ export default class ClaudeCopilotPlugin extends Plugin {
 		// Sync settings to React
 		this.reactAPI?.updateSettings({
 			debounceDelayMs: this.settings.debounceDelay,
+			allowedTools: this.settings.allowedTools,
 		});
 	}
 }

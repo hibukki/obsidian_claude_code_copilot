@@ -14,10 +14,15 @@ function getSessionId(vaultPath: string): string {
 export class ClaudeClient {
 	private activeSessions = new Set<string>();
 	private vaultPath: string;
-	private readonly allowedTools = "Read,Grep,Glob,LS";
+	private allowedTools: string;
 
-	constructor(vaultPath: string) {
+	constructor(vaultPath: string, allowedTools: string) {
 		this.vaultPath = vaultPath;
+		this.allowedTools = allowedTools;
+	}
+
+	setAllowedTools(allowedTools: string) {
+		this.allowedTools = allowedTools;
 	}
 
 	isNewSession(): boolean {

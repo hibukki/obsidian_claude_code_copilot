@@ -36,8 +36,16 @@ export const CopilotApp: React.FC<CopilotAppProps> = ({
 
 	// Initialize ClaudeClient
 	useEffect(() => {
-		claudeClientRef.current = new ClaudeClient(vaultPath);
-	}, [vaultPath]);
+		claudeClientRef.current = new ClaudeClient(
+			vaultPath,
+			settings.allowedTools,
+		);
+	}, [vaultPath, settings.allowedTools]);
+
+	// Update allowedTools when settings change
+	useEffect(() => {
+		claudeClientRef.current?.setAllowedTools(settings.allowedTools);
+	}, [settings.allowedTools]);
 
 	// Debounced query function - recreated when settings change
 	const debouncedQuery = useMemo(

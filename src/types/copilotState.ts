@@ -2,6 +2,7 @@
 
 export interface Settings {
 	debounceDelayMs: number;
+	allowedTools: string;
 }
 
 // Discriminated union for query state - prevents invalid state combinations

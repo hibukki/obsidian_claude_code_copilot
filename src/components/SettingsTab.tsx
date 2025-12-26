@@ -16,6 +16,9 @@ const SettingsComponent: React.FC<SettingsProps> = ({ plugin }) => {
 	const [debounceDelay, setDebounceDelay] = useState(
 		plugin.settings.debounceDelay.toString(),
 	);
+	const [allowedTools, setAllowedTools] = useState(
+		plugin.settings.allowedTools,
+	);
 	const [statusMessage, setStatusMessage] = useState<{
 		text: string;
 		type: "success" | "error";
@@ -38,6 +41,12 @@ const SettingsComponent: React.FC<SettingsProps> = ({ plugin }) => {
 			plugin.settings.debounceDelay = delay;
 			await plugin.saveSettings();
 		}
+	};
+
+	const handleAllowedToolsChange = async (value: string) => {
+		setAllowedTools(value);
+		plugin.settings.allowedTools = value;
+		await plugin.saveSettings();
 	};
 
 	const handleEditPrompt = async () => {
@@ -109,6 +118,26 @@ const SettingsComponent: React.FC<SettingsProps> = ({ plugin }) => {
 
 			<div className="setting-item">
 				<div className="setting-item-info">
+					<div className="setting-item-name">Allowed Tools</div>
+					<div className="setting-item-description">
+						Comma-separated list of Claude CLI tools the copilot can
+						use (e.g., Read,Grep,Glob,LS)
+					</div>
+				</div>
+				<div className="setting-item-control">
+					<input
+						type="text"
+						placeholder="Read,Grep,Glob,LS"
+						value={allowedTools}
+						onChange={(e) =>
+							handleAllowedToolsChange(e.target.value)
+						}
+					/>
+				</div>
+			</div>
+
+			<div className="setting-item">
+				<div className="setting-item-info">
 					<div className="setting-item-name">Prompt Template</div>
 					<div className="setting-item-description">
 						Customize the prompt template that guides Claude's
@@ -126,21 +155,11 @@ const SettingsComponent: React.FC<SettingsProps> = ({ plugin }) => {
 				</div>
 				{statusMessage && (
 					<div
-						style={{
-							marginTop: "8px",
-							padding: "6px 12px",
-							borderRadius: "4px",
-							fontSize: "14px",
-							backgroundColor:
-								statusMessage.type === "success"
-									? "#d4edda"
-									: "#f8d7da",
-							color:
-								statusMessage.type === "success"
-									? "#155724"
-									: "#721c24",
-							border: `1px solid ${statusMessage.type === "success" ? "#c3e6cb" : "#f5c6cb"}`,
-						}}
+						className={
+							statusMessage.type === "success"
+								? "setting-status-success"
+								: "setting-status-error"
+						}
 					>
 						{statusMessage.text}
 					</div>

@@ -26,7 +26,7 @@ This is an Obsidian plugin that provides AI-powered writing assistance using Cla
 
 - **Real-time Document Analysis**: Uses debounced editor change events to analyze document content
 - **Cursor-aware Prompts**: Inserts `<cursor/>` markers to show Claude the user's current position
-- **Customizable Prompts**: Users can edit the prompt template in `.claude_copilot/prompt.md`
+- **Customizable Prompts**: Users can edit the prompt template in `claude_copilot/prompt.md`
 - **React Integration**: Uses React 19 with TypeScript for the UI components
 
 ### File Structure

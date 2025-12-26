@@ -2,8 +2,6 @@ import React from "react";
 import { XMLContentRenderer } from "./XMLContentRenderer";
 import { usePersistentPanelState } from "../hooks/usePersistentPanelState";
 import { QueryState, canRetryError } from "../types/copilotState";
-import { useSettings } from "../contexts/SettingsContext";
-import { insertCursorMarker } from "../utils/cursor";
 
 interface CopilotPanelProps {
 	queryState: QueryState;
@@ -20,7 +18,6 @@ export const CopilotPanel: React.FC<CopilotPanelProps> = ({
 		"debug-section",
 		false,
 	);
-	const settings = useSettings();
 
 	// Compute document preview from current editor state (when available)
 	// For now, we'll show a placeholder since we need editor content

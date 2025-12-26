@@ -1,9 +1,9 @@
 {
-	"id": "claude-copilot",
-	"name": "Claude Copilot",
+	"id": "claude-code-copilot",
+	"name": "Claude Code Copilot",
 	"version": "1.0.0",
 	"minAppVersion": "0.15.0",
-	"description": "AI-powered writing assistant that provides real-time feedback using Claude",
+	"description": "AI-powered writing assistant that provides real-time feedback using Claude Code",
 	"author": "Claude Copilot",
 	"authorUrl": "",
 	"isDesktopOnly": true
