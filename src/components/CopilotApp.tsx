@@ -40,9 +40,9 @@ export const CopilotApp: React.FC<CopilotAppProps> = ({
 			vaultPath,
 			settings.allowedTools,
 		);
-	}, [vaultPath, settings.allowedTools]);
+	}, [vaultPath]);
 
-	// Update allowedTools when settings change
+	// Update allowedTools when settings change (without recreating client)
 	useEffect(() => {
 		claudeClientRef.current?.setAllowedTools(settings.allowedTools);
 	}, [settings.allowedTools]);
