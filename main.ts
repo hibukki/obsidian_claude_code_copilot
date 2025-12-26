@@ -15,10 +15,11 @@ import { CopilotApp } from "./src/components/CopilotApp";
 import { ClaudeCopilotSettingTab } from "./src/components/SettingsTab";
 import { ClaudeCopilotSettings } from "./src/types";
 import { Settings, CopilotReactAPI } from "./src/types/copilotState";
+import { DEFAULT_ALLOWED_TOOLS } from "./src/consts";
 
 const DEFAULT_SETTINGS: ClaudeCopilotSettings = {
 	debounceDelay: 2000,
-	allowedTools: "Read,Grep,Glob,LS",
+	allowedTools: DEFAULT_ALLOWED_TOOLS,
 };
 
 const VIEW_TYPE_CLAUDE_COPILOT = "claude-copilot-view";

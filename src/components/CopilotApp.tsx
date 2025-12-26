@@ -136,8 +136,13 @@ ${contextLines}
 	// Handle clearing the session
 	const handleClear = () => {
 		claudeClientRef.current?.clearSession();
-		setQueryState({ status: "idle" });
+		setQueryState({ status: "cleared" });
 		setLastSuccessfulFeedback(null);
+
+		// Reset to idle after brief feedback
+		setTimeout(() => {
+			setQueryState({ status: "idle" });
+		}, 1500);
 	};
 
 	// Expose API to Obsidian

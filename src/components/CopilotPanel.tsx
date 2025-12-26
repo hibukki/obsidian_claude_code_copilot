@@ -89,6 +89,10 @@ const FeedbackSection: React.FC<FeedbackSectionProps> = ({
 				)
 			)}
 
+			{queryState.status === "cleared" && (
+				<div className="placeholder-text">Session cleared</div>
+			)}
+
 			{/* Always render thinking indicator to maintain layout */}
 			<div
 				className="claude-thinking-indicator"

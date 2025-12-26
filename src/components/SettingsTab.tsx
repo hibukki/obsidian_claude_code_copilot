@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { App, PluginSettingTab } from "obsidian";
 import { createRoot, Root } from "react-dom/client";
 import type ClaudeCopilotPlugin from "../../main";
-import { CLAUDE_COPILOT_PROMPT_FILE } from "../consts";
+import { CLAUDE_COPILOT_PROMPT_FILE, DEFAULT_ALLOWED_TOOLS } from "../consts";
 import {
 	openPromptFile,
 	restoreDefaultPrompt,
@@ -121,13 +121,13 @@ const SettingsComponent: React.FC<SettingsProps> = ({ plugin }) => {
 					<div className="setting-item-name">Allowed Tools</div>
 					<div className="setting-item-description">
 						Comma-separated list of Claude CLI tools the copilot can
-						use (e.g., Read,Grep,Glob,LS)
+						use (e.g., {DEFAULT_ALLOWED_TOOLS})
 					</div>
 				</div>
 				<div className="setting-item-control">
 					<input
 						type="text"
-						placeholder="Read,Grep,Glob,LS"
+						placeholder={DEFAULT_ALLOWED_TOOLS}
 						value={allowedTools}
 						onChange={(e) =>
 							handleAllowedToolsChange(e.target.value)

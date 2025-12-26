@@ -10,7 +10,8 @@ export type QueryState =
 	| { status: "idle" }
 	| { status: "querying" }
 	| { status: "success"; feedback: string }
-	| { status: "error"; error: string; occurredAt: Date };
+	| { status: "error"; error: string; occurredAt: Date }
+	| { status: "cleared" };
 
 export interface CopilotAppState {
 	settings: Settings;
